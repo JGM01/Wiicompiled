@@ -139,7 +139,10 @@ extern "C" int32_t NANDOpen_HLE(uint32_t pathPtr, uint32_t fileInfoPtr, uint32_t
         }
     }
 
-    const char* fopenMode = (mode == 2 || mode == 3) ? "r+b" : "rb";
+    const char* fopenMode = "rb";
+    if (mode == 1) fopenMode = "rb";
+    else if (mode == 2) fopenMode = "r+b";
+    else if (mode == 3) fopenMode = "r+b";
     
     FILE* file = NandFopen(hostPath, fopenMode);
     if (!file && mode >= 2) {
