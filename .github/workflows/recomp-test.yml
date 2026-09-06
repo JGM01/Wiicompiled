@@ -37,8 +37,8 @@ jobs:
         shell: pwsh
         run: |
           "SCCACHE_GHA_ENABLED=true" | Add-Content -Path $env:GITHUB_ENV
-          "CMAKE_C_COMPILER_LAUNCHER=sccache" | Add-Content -Path $env:GITHUB_ENV
-          "CMAKE_CXX_COMPILER_LAUNCHER=sccache" | Add-Content -Path $env:GITHUB_ENV
+          "CMAKE_C_COMPILER_LAUNCHER=$env:SCCACHE_PATH" | Add-Content -Path $env:GITHUB_ENV
+          "CMAKE_CXX_COMPILER_LAUNCHER=$env:SCCACHE_PATH" | Add-Content -Path $env:GITHUB_ENV
 
       - name: Prepare the shipped Windows toolchain
         shell: pwsh
@@ -54,7 +54,7 @@ jobs:
         env:
           ACTIONS_CACHE_URL: ${{ env.ACTIONS_CACHE_URL }}
           ACTIONS_RUNTIME_TOKEN: ${{ env.ACTIONS_RUNTIME_TOKEN }}
-        run: ./Launcher/Test-Recompilation.ps1 -Parallel 2
+        run: ./Launcher/Test-Recompilation.ps1 -Parallel 3
 
       # Print cache results (even if the build fails)
       - name: Show sccache stats
