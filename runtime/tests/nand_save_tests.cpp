@@ -1,11 +1,14 @@
 #include "nand_save_probe.h"
-#include "nand_settings.h"
 
 #include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace fs = std::filesystem;
 using RuntimeNandSave::ReadAction;
@@ -47,9 +50,11 @@ int main() {
     try {
         const auto save = root / "title/00010004/524d4350/data/rksys.dat";
         const auto shadow = fs::path(save.native() + fs::path(".nandsafe.tmp").native());
-        std::string error;
-        Require(RuntimeNandSettings::Ensure(root, error, 1800000123), "New profile settings bootstrap");
-        const auto identity = Read(RuntimeNandSettings::FilePath(root));
+        // Save inspection must leave unrelated NAND data alone. Settings
+        // initialization is covered separately by nand_settings_tests.
+        const auto settingsPath = root / "title/00000001/00000002/data/setting.txt";
+        const std::string identity(256, '\x5a');
+        Write(settingsPath, identity);
         Require(RuntimeNandSave::CheckRead(save, 1) == ReadAction::Proceed, "Fresh profile follows normal missing-file handling");
         Require(!fs::exists(save), "Probing fresh profile must not create a save");
 
@@ -126,8 +131,7 @@ int main() {
         SetFileAttributesW(save.c_str(), FILE_ATTRIBUTE_NORMAL);
         Require(readOnlyResult == ReadAction::Proceed && Read(save) == existing, "Readable read-only save remains available");
 #endif
-        Require(RuntimeNandSettings::Ensure(root, error, 1900000123), "Existing profile settings bootstrap");
-        Require(Read(RuntimeNandSettings::FilePath(root)) == identity, "Save recovery must not change console identity");
+        Require(Read(settingsPath) == identity, "Save inspection must not change NAND settings");
         fs::remove_all(root);
         std::cout << "NAND save startup, preservation, interrupted-write and I/O failure scenarios passed\n";
         return 0;
