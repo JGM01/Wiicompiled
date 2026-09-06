@@ -411,6 +411,39 @@ bool IsFaceLibResourcePath(const char* path) {
     return std::strcmp(path, "/shared2/menu/FaceLib/RFL_Res.dat") == 0;
 }
 
+bool NandSystemSaveIsUninitialized(const std::filesystem::path& hostPath) {
+    if (!IsNandSystemSavePath(hostPath))
+        return false;
+
+    std::error_code ec;
+    if (!std::filesystem::is_regular_file(hostPath, ec) || ec)
+        return false;
+
+    std::ifstream in(hostPath, std::ios::binary);
+    if (!in)
+        return false;
+
+    char block[4096];
+    while (in) {
+        in.read(block, sizeof(block));
+        const std::streamsize got = in.gcount();
+
+        for (std::streamsize i = 0; i < got; ++i)
+            if (block[i] != 0)
+                return false;
+    }
+    return true;
+}
+
+bool NandIgnoreUninitializedSaveRead(const char* who,
+                                     const std::filesystem::path& hostPath, int mode) {
+    if (mode != 1 || !NandSystemSaveIsUninitialized(hostPath))
+        return false;
+    LogNandWarning(who, "ignoring uninitialized system save '%s' (no save committed yet)",
+                   HostPathText(hostPath).c_str());
+    return true;
+}
+
 // Create directories recursively
 bool CreateDirectoryPath(const std::filesystem::path& path) {
     if (path.empty()) {

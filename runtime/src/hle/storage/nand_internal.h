@@ -56,6 +56,25 @@ constexpr uint32_t kNandTitleIdLo = 0x524D4350; // "RMCP" fallback
 void LogNandError(const char* func, const char* fmt, ...);
 void LogNandWarning(const char* func, const char* fmt, ...);
 
+// The Mario Kart Wii system save (rksys.dat) and its ".nandsafe.tmp" write shadows.
+inline bool IsNandSystemSavePath(const std::filesystem::path& path) {
+    const std::string name = path.filename().string();
+    return name == "rksys.dat" || name.rfind("rksys.dat", 0) == 0;
+}
+
+// True when a system save exists on the host but holds no committed save yet: the game
+// zero-fills rksys.dat during its first-run "format save data" step and only writes the
+// real database (which always begins with the RKSD0006 header) once it actually saves.
+// An all-zero file therefore contains nothing worth loading; read it as absent so the
+// game recreates its save instead of entering the corrupt-save recovery loop.
+bool NandSystemSaveIsUninitialized(const std::filesystem::path& hostPath);
+
+// Read-open helper: logs and returns true when a read of this system save should see
+// "no save". Centralizes the mode == 1 guard and warning so the NAND, NANDSafe and IOS
+// open paths share one branch and message.
+bool NandIgnoreUninitializedSaveRead(const char* who, const std::filesystem::path& hostPath,
+                                     int mode);
+
 // ============================================================================
 // File Descriptor Management
 // ============================================================================

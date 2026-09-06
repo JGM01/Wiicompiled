@@ -93,6 +93,9 @@ extern "C" int32_t NANDOpen_HLE(uint32_t pathPtr, uint32_t fileInfoPtr, uint32_t
 
     const std::filesystem::path hostPath = TranslateNandPath(path);
 
+    if (NandIgnoreUninitializedSaveRead("NANDOpen", hostPath, mode))
+        return NAND_RESULT_NOEXISTS;
+
     // Existing-file write opens go through a shadow copy seeded from the original, so a
     // crash between NANDWrite and NANDClose cannot leave a torn file (the game patches
     // sub-ranges, e.g. ghost saves at a non-zero offset). New files still create in place.
@@ -136,10 +139,7 @@ extern "C" int32_t NANDOpen_HLE(uint32_t pathPtr, uint32_t fileInfoPtr, uint32_t
         }
     }
 
-    const char* fopenMode = "rb";
-    if (mode == 1) fopenMode = "rb";
-    else if (mode == 2) fopenMode = "r+b";
-    else if (mode == 3) fopenMode = "r+b";
+    const char* fopenMode = (mode == 2 || mode == 3) ? "r+b" : "rb";
     
     FILE* file = NandFopen(hostPath, fopenMode);
     if (!file && mode >= 2) {
