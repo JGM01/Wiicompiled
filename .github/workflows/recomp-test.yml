@@ -37,7 +37,7 @@ jobs:
         shell: pwsh
         run: |
           "SCCACHE_GHA_ENABLED=true" | Add-Content -Path $env:GITHUB_ENV
-          "ACTIONS_CACHE_URL=$env:ACTIONS_RESULTS_URL" | Add-Content -Path $env:GITHUB_ENV
+          "ACTIONS_CACHE_SERVICE_V2=on" | Add-Content -Path $env:GITHUB_ENV
           "CMAKE_C_COMPILER_LAUNCHER=$env:SCCACHE_PATH" | Add-Content -Path $env:GITHUB_ENV
           "CMAKE_CXX_COMPILER_LAUNCHER=$env:SCCACHE_PATH" | Add-Content -Path $env:GITHUB_ENV
 
