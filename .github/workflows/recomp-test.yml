@@ -52,7 +52,7 @@ jobs:
       # Expose cache token context to the build script.
       - name: Translate, compile the full runtime, and link
         shell: pwsh
-        run: ./Launcher/Test-Recompilation.ps1
+        run: ./Launcher/Test-Recompilation.ps1 -Parallel 4
 
       # Print cache results (even if the build fails)
       - name: Show sccache stats
