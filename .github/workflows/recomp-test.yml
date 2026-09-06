@@ -37,6 +37,7 @@ jobs:
         shell: pwsh
         run: |
           "SCCACHE_GHA_ENABLED=true" | Add-Content -Path $env:GITHUB_ENV
+          "ACTIONS_CACHE_URL=$env:ACTIONS_RESULTS_URL" | Add-Content -Path $env:GITHUB_ENV
           "CMAKE_C_COMPILER_LAUNCHER=$env:SCCACHE_PATH" | Add-Content -Path $env:GITHUB_ENV
           "CMAKE_CXX_COMPILER_LAUNCHER=$env:SCCACHE_PATH" | Add-Content -Path $env:GITHUB_ENV
 
@@ -51,10 +52,7 @@ jobs:
       # Expose cache token context to the build script.
       - name: Translate, compile the full runtime, and link
         shell: pwsh
-        env:
-          ACTIONS_CACHE_URL: ${{ env.ACTIONS_CACHE_URL }}
-          ACTIONS_RUNTIME_TOKEN: ${{ env.ACTIONS_RUNTIME_TOKEN }}
-        run: ./Launcher/Test-Recompilation.ps1 -Parallel 3
+        run: ./Launcher/Test-Recompilation.ps1
 
       # Print cache results (even if the build fails)
       - name: Show sccache stats
