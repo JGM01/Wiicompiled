@@ -69,9 +69,7 @@ inline bool IsNandSystemSavePath(const std::filesystem::path& path) {
 // game recreates its save instead of entering the corrupt-save recovery loop.
 bool NandSystemSaveIsUninitialized(const std::filesystem::path& hostPath);
 
-// Read-open helper: logs and returns true when a read of this system save should see
-// "no save". Centralizes the mode == 1 guard and warning so the NAND, NANDSafe and IOS
-// open paths share one branch and message.
+// Read-open helper: logs and returns true when a read of this system save should see "no save".
 bool NandIgnoreUninitializedSaveRead(const char* who, const std::filesystem::path& hostPath,
                                      int mode);
 
