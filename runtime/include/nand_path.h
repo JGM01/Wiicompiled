@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nand_facelib.h"
 #include "runtime_config.h"
 #include "nand_settings.h"
 #include "runtime_log.h"
@@ -186,6 +187,9 @@ inline std::filesystem::path DiscoverNandRootPath() {
         std::string error;
         if (!RuntimeNandSettings::Ensure(resolved, error)) {
             FailNandRoot(error.c_str(), RuntimeNandSettings::FilePath(resolved));
+        }
+        if (!RuntimeNandFaceLib::EnsureDatabase(resolved, error)) {
+            FailNandRoot(error.c_str(), RuntimeNandFaceLib::FilePath(resolved));
         }
         return resolved;
     }();
