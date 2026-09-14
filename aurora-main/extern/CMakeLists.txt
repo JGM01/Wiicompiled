@@ -51,11 +51,16 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/AuroraSDL3Provider.cmake)
 
 if (NOT TARGET xxhash)
   message(STATUS "aurora: Fetching xxhash")
+  if (DEFINED FETCHCONTENT_SOURCE_DIR_XXHASH AND FETCHCONTENT_SOURCE_DIR_XXHASH)
+    message(FATAL_ERROR "aurora: FETCHCONTENT_SOURCE_DIR_XXHASH is not supported")
+  endif ()
+  set(_aurora_xxhash_patches "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/AuroraXxHashPatches.cmake")
   FetchContent_Declare(xxhash
     URL https://github.com/Cyan4973/xxHash/archive/refs/tags/v0.8.3.tar.gz
     URL_HASH SHA256=aae608dfe8213dfd05d909a57718ef82f30722c392344583d3f39050c7f29a80
     SOURCE_SUBDIR cmake_unofficial
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    PATCH_COMMAND "${CMAKE_COMMAND}" -DXXHASH_SOURCE_DIR=<SOURCE_DIR> -P "${_aurora_xxhash_patches}"
     EXCLUDE_FROM_ALL
   )
   set(XXHASH_BUILD_XXHSUM OFF CACHE INTERNAL "Build the xxhsum binary")
