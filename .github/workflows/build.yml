@@ -178,12 +178,12 @@ jobs:
         if: always() && !cancelled()
         shell: pwsh
         run: |
-          @"
-          ## Managed artifact
-
-          - Evidence: ${{ steps.managed-artifact.outputs.artifact-url }}
-          - SHA-256: `${{ steps.managed-artifact.outputs.artifact-digest }}`
-          "@ | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          @(
+            '## Managed artifact'
+            ''
+            '- Evidence: ${{ steps.managed-artifact.outputs.artifact-url }}'
+            '- SHA-256: `${{ steps.managed-artifact.outputs.artifact-digest }}`'
+          ) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
 
   native:
     name: Native synthetic matrix

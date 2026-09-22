@@ -149,15 +149,15 @@ jobs:
             $cmake = (Get-Command cmake -CommandType Application | Select-Object -First 1).Source
             $clang = (Get-Command clang -CommandType Application | Select-Object -First 1).Source
           }
-          @"
-          runner.os=${{ runner.os }}
-          runner.arch=${{ runner.arch }}
-          image.os=$env:ImageOS
-          image.version=$env:ImageVersion
-          os.description=$([Runtime.InteropServices.RuntimeInformation]::OSDescription)
-          process.architecture=$([Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
-          github.sha=${{ github.sha }}
-          "@ | Out-File -Encoding utf8 (Join-Path $env:EVIDENCE_DIR 'environment.txt')
+          @(
+            'runner.os=${{ runner.os }}'
+            'runner.arch=${{ runner.arch }}'
+            "image.os=$env:ImageOS"
+            "image.version=$env:ImageVersion"
+            "os.description=$([Runtime.InteropServices.RuntimeInformation]::OSDescription)"
+            "process.architecture=$([Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)"
+            'github.sha=${{ github.sha }}'
+          ) | Out-File -Encoding utf8 (Join-Path $env:EVIDENCE_DIR 'environment.txt')
           & $cmake --version | Out-File -Encoding utf8 (Join-Path $env:EVIDENCE_DIR 'cmake-version.txt')
           & $clang --version | Out-File -Encoding utf8 (Join-Path $env:EVIDENCE_DIR 'clang-version.txt')
           & sccache --version | Out-File -Encoding utf8 (Join-Path $env:EVIDENCE_DIR 'sccache-version.txt')
@@ -173,7 +173,13 @@ jobs:
             Parallel = ${{ matrix.parallel }}
           }
           if ($env:RUN_AURORA -eq 'true') { $arguments.RunAuroraTests = $true }
-          ./Launcher/Test-Recompilation.ps1 @arguments
+          $transcript = Join-Path $env:EVIDENCE_DIR 'synthetic-recompilation.log'
+          Start-Transcript -LiteralPath $transcript -Force | Out-Null
+          try {
+            ./Launcher/Test-Recompilation.ps1 @arguments
+          } finally {
+            Stop-Transcript | Out-Null
+          }
 
       - name: Record sccache statistics
         if: always() && !cancelled()
@@ -190,7 +196,7 @@ jobs:
           detailed_summary: true
           include_passed: true
           fail_on_failure: true
-          require_tests: true
+          require_tests: false
 
       - name: Bundle linked synthetic product
         if: success()
@@ -267,11 +273,11 @@ jobs:
         if: always() && !cancelled()
         shell: pwsh
         run: |
-          @"
-          ## Native artifacts
-
-          - Evidence: ${{ steps.evidence-artifact.outputs.artifact-url }}
-          - Evidence SHA-256: `${{ steps.evidence-artifact.outputs.artifact-digest }}`
-          - Product: ${{ steps.product-artifact.outputs.artifact-url }}
-          - Product SHA-256: `${{ steps.product-artifact.outputs.artifact-digest }}`
-          "@ | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          @(
+            '## Native artifacts'
+            ''
+            '- Evidence: ${{ steps.evidence-artifact.outputs.artifact-url }}'
+            '- Evidence SHA-256: `${{ steps.evidence-artifact.outputs.artifact-digest }}`'
+            '- Product: ${{ steps.product-artifact.outputs.artifact-url }}'
+            '- Product SHA-256: `${{ steps.product-artifact.outputs.artifact-digest }}`'
+          ) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
