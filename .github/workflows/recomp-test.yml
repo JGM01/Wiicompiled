@@ -259,6 +259,7 @@ jobs:
         with:
           name: native-failure-${{ matrix.platform }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
+            ${{ env.EVIDENCE_DIR }}/synthetic-recompilation.log
             ${{ env.RECOMP_STAGE }}/recomp.yml
             ${{ env.RECOMP_STAGE }}/synthetic-functions.txt
             ${{ env.RECOMP_STAGE }}/generated/base_translation_output.json
